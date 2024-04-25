@@ -81,6 +81,8 @@ public class ChatApplication extends JFrame {
             chatArea.append("You: " + message + "\n");
             messageField.setText(""); // Clears the input field after sending
             statusLabel.setText("Message sent"); // update status on send
+                
+            new Timer(3000, e -> statusLabel.setText("Ready")).start();
         } catch (Exception e) {
             statusLabel.setText("Failed to send message"); // Update status on failure to sendd
             JOptionPane.showMessageDialog(this, "Failed to send message: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -104,6 +106,8 @@ public class ChatApplication extends JFrame {
               //TODO Change with information from network info
            // controller.sendImage(selectedFile); 
            statusLabel.setText("Image sent"); // Update status on successful send
+
+           new Timer(3000, e -> statusLabel.setText("Ready")).start();
         } catch (Exception e) {
             statusLabel.setText("Failed to send image"); // Update status on failure to send
             JOptionPane.showMessageDialog(this, "Failed to send image: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
