@@ -5,7 +5,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 
-public class ChatApplication extends JFrame {
+public class UserInterface extends JFrame {
     private JTextArea chatArea;
     private JTextField messageField;
     private JButton sendButton;
@@ -13,8 +13,8 @@ public class ChatApplication extends JFrame {
     private JLabel statusLabel; // status label to display feedback
     private JList<String> userList;
 
-    public ChatApplication() {
-        super("Chat Application");
+    public UserInterface() {
+        super("UserInterface");
         initializeComponents();
         layoutComponents();
         addListeners();
@@ -81,7 +81,9 @@ public class ChatApplication extends JFrame {
             chatArea.append("You: " + message + "\n");
             messageField.setText(""); // Clears the input field after sending
             statusLabel.setText("Message sent"); // update status on send
-                
+
+
+            // Reset the status label after a few seconds
             new Timer(3000, e -> statusLabel.setText("Ready")).start();
         } catch (Exception e) {
             statusLabel.setText("Failed to send message"); // Update status on failure to sendd
@@ -106,6 +108,7 @@ public class ChatApplication extends JFrame {
               //TODO Change with information from network info
            // controller.sendImage(selectedFile); 
            statusLabel.setText("Image sent"); // Update status on successful send
+
 
            new Timer(3000, e -> statusLabel.setText("Ready")).start();
         } catch (Exception e) {
@@ -149,10 +152,10 @@ public class ChatApplication extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
         showConnectionDialog(); // Show connection dialog first
-        ChatApplication chatApp = new ChatApplication();
-        chatApp.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        chatApp.pack();
-        chatApp.setVisible(true);
+        UserInterface uInt = new UserInterface();
+        uInt.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        uInt.pack();
+        uInt.setVisible(true);
     });
     }
 }
