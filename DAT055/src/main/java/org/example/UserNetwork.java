@@ -21,9 +21,10 @@ public class UserNetwork {
                 try {
                     String serverResponse;
                     while ((serverResponse = in.readLine()) != null) {
-                        System.out.println(serverResponse);
+                        System.out.println("Received: " + serverResponse);
                     }
                 } catch (IOException e) {
+                    System.out.println("Error reading from server: " + e.getMessage());
                     e.printStackTrace();
                 }
             }).start();
@@ -33,10 +34,12 @@ public class UserNetwork {
             String userInput;
             while (true) {
                 userInput = scanner.nextLine();
+                System.out.println("Sending: " + userInput);
                 out.println(userInput);
             }
 
         } catch (IOException e) {
+            System.out.println("Unable to connect to server: " + e.getMessage());
             e.printStackTrace();
         }
     }

@@ -7,7 +7,7 @@ public class HostNetwork {
     private static final int PORT = 12345;
     private static CopyOnWriteArrayList<ClientHandler> clients = new CopyOnWriteArrayList<>();
 
-    public void startServer() {
+    public static void main(String[] args) {
         try {
 
             ServerSocket serverSocket = new ServerSocket(PORT);
