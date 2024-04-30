@@ -16,7 +16,7 @@ public class HostNetwork {
             // Accept incoming connections
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                System.out.println("New client connected: " + clientSocket);
+                System.out.println("New user connected: " + clientSocket);
 
                 // Create a new client handler for the connected client
                 ClientHandler clientHandler = new ClientHandler(clientSocket);
