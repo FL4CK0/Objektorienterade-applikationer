@@ -7,7 +7,7 @@ public class HostNetwork {
     private static final int PORT = 12345;
     private static CopyOnWriteArrayList<ClientHandler> clients = new CopyOnWriteArrayList<>();
 
-    public void startServer() {
+    public static void main(String[] args) {
         try {
 
             ServerSocket serverSocket = new ServerSocket(PORT);
@@ -16,7 +16,7 @@ public class HostNetwork {
             // Accept incoming connections
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                System.out.println("New user connected: " + clientSocket);
+                System.out.println("New client connected: " + clientSocket);
 
                 // Create a new client handler for the connected client
                 ClientHandler clientHandler = new ClientHandler(clientSocket);
