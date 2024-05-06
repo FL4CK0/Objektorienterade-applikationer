@@ -1,6 +1,10 @@
 package org.example;
 
-public class TextMessage implements Message {
+import java.io.Serializable;
+import java.io.Serializable;
+
+public class TextMessage implements Message, Serializable {
+    private static final long serialVersionUID = 1L; // Ensure version compatibility
     private String text;
 
     public TextMessage(String text) {
@@ -9,11 +13,16 @@ public class TextMessage implements Message {
 
     @Override
     public void send() {
-        // Logic to send text message
+        System.out.println("Sending text message: " + text);
     }
 
     @Override
     public String getContent() {
         return text;
+    }
+
+    @Override
+    public String toString() {
+        return text; // Return text directly for display
     }
 }
