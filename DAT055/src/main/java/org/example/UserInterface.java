@@ -1,57 +1,74 @@
+package org.example;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
-
+import java.nio.file.Files;
+import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import org.example.MMS;
+import javax.swing.*;
+import javax.swing.text.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
-public class UserInterface extends JFrame {
-    private JTextArea chatArea;
-    private JTextField messageField;
-    private JButton sendButton;
-    private JButton imageButton;
-    private JLabel statusLabel; // status label to display feedback
+public class UserInterface extends JFrame implements Observer {
+    private JTextPane chatPane;
+    private JTextField messageInputField;
+    private JButton sendButton, imageButton;
+    private JLabel statusLabel;
     private JList<String> userList;
+    private Controller controller;
+    private ChatHistory chatHistory;
+    private StyledDocument document;
 
-    public UserInterface() {
-        super("UserInterface");
+    public UserInterface(Controller controller, ChatHistory chatHistory) {
+        super("Chat Application");
+        this.controller = controller;
+        this.chatHistory = chatHistory;
+        chatHistory.addObserver(this);
+
         initializeComponents();
         layoutComponents();
         addListeners();
+        showConnectionDialog();
+
+        setSize(800, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
     private void initializeComponents() {
-        chatArea = new JTextArea(20, 30);
-        chatArea.setEditable(false);
-        chatArea.setFont(new Font("SansSerif", Font.PLAIN, 14)); // Set a custom font for the chat area
-        chatArea.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+        chatPane = new JTextPane();
+        chatPane.setEditable(false);
+        document = chatPane.getStyledDocument();
 
-        messageField = new JTextField(25);
-        messageField.setFont(new Font("SansSerif", Font.PLAIN, 14)); // Consistent font style
+        messageInputField = new JTextField("Type Your Message");
+        messageInputField.setFont(new Font("SansSerif", Font.PLAIN, 14));
 
         sendButton = new JButton("Send");
         imageButton = new JButton("Send Image");
-        
-        statusLabel = new JLabel("Ready"); // Initial status message
+
+        statusLabel = new JLabel("Ready");
         statusLabel.setFont(new Font("SansSerif", Font.ITALIC, 12));
         statusLabel.setForeground(Color.BLUE);
 
-        //TODO populate with model info, link to the model component to display and update the list of active users based on the apps current state
-        userList = new JList<>(); 
+        userList = new JList<>();
     }
 
     private void layoutComponents() {
-        JScrollPane scrollPane = new JScrollPane(chatArea);
+        JScrollPane scrollPane = new JScrollPane(chatPane);
         JPanel inputPanel = new JPanel(new BorderLayout());
-        inputPanel.add(messageField, BorderLayout.CENTER);
+        inputPanel.add(messageInputField, BorderLayout.CENTER);
         inputPanel.add(sendButton, BorderLayout.EAST);
 
         JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         statusPanel.add(statusLabel);
 
         JPanel sidePanel = new JPanel(new BorderLayout());
-        sidePanel.add(new JLabel("Active Users"), BorderLayout.NORTH);
-        sidePanel.add(new JScrollPane(userList), BorderLayout.CENTER);
+        //sidePanel.add(new JLabel("Active Users"), BorderLayout.NORTH);      // Detta för aktiv användarlista? om vi ens ska ha det
+        //sidePanel.add(new JScrollPane(userList), BorderLayout.CENTER);
 
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.add(inputPanel, BorderLayout.CENTER);
@@ -65,97 +82,112 @@ public class UserInterface extends JFrame {
     }
 
     private void addListeners() {
-        sendButton.addActionListener(e -> sendMessage());
-        imageButton.addActionListener(e -> sendImage());
-        messageField.addActionListener(e -> sendMessage()); // SEND with ENTER
+        messageInputField.addFocusListener(new FocusAdapter() {
+            public void focusGained(FocusEvent e) {
+                if (messageInputField.getText().equals("Type Your Message")) {
+                    messageInputField.setText("");
+                }
+            }
+
+            public void focusLost(FocusEvent e) {
+                if (messageInputField.getText().isEmpty()) {
+                    messageInputField.setText("Type Your Message");
+                }
+            }
+        });
+
+        sendButton.addActionListener(e -> {
+            if (!messageInputField.getText().equals("Type Your Message")) {
+                controller.sendMessage(messageInputField.getText().trim());
+                messageInputField.setText("");
+            }
+        });
+
+        messageInputField.addActionListener(e -> {
+            if (!messageInputField.getText().equals("Type Your Message")) {
+                controller.sendMessage(messageInputField.getText().trim());
+                messageInputField.setText("");
+            }
+        });
+
+        imageButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fileChooser.setAcceptAllFileFilterUsed(false);
+            fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("Image Files", "jpg", "jpeg", "png", "gif", "bmp"));
+
+            int result = fileChooser.showOpenDialog(this);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = fileChooser.getSelectedFile();
+                try {
+                    // Now, we convert the image to a byte array before sending
+                    byte[] imageData = Files.readAllBytes(selectedFile.toPath());
+                    controller.sendImage(selectedFile); // This should also be modified if necessary to handle byte[].
+                    insertImageToChat(imageData);
+                    statusLabel.setText("Image sent");
+                    new javax.swing.Timer(3000, event -> statusLabel.setText("Ready")).start();
+                } catch (IOException ioException) {
+                    JOptionPane.showMessageDialog(this, "Failed to load image: " + ioException.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
     }
 
-    private void sendMessage() {
-        String message = messageField.getText().trim(); // Retrieve the text from the input field
-        if (!message.isEmpty()) {
-            // code to send the message to the server or other users
-            try {
-                statusLabel.setText("Sending..."); // Update status
-            //TODO Change with information from network info
-           // controller.sendMessage(message); 
-            chatArea.append("You: " + message + "\n");
-            messageField.setText(""); // Clears the input field after sending
-            statusLabel.setText("Message sent"); // update status on send
+    private void insertImageToChat(byte[] imageData) {
+        ImageIcon icon = new ImageIcon(imageData);
+        // Scale the image. Adjust the width to 300 and height to -1 to maintain aspect ratio.
+        Image img = icon.getImage().getScaledInstance(300, -1, Image.SCALE_SMOOTH);
+        icon = new ImageIcon(img);
 
-
-            // Reset the status label after a few seconds
-            new Timer(3000, e -> statusLabel.setText("Ready")).start();
-        } catch (Exception e) {
-            statusLabel.setText("Failed to send message"); // Update status on failure to sendd
-            JOptionPane.showMessageDialog(this, "Failed to send message: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-    }
-
-
-    private void sendImage() {
-        JFileChooser fileChooser = new JFileChooser();
-    fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    fileChooser.setAcceptAllFileFilterUsed(false);
-    fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("Image Files", "jpg", "png", "gif", "bmp")); // Filter for image files
-
-    int result = fileChooser.showOpenDialog(this);
-    if (result == JFileChooser.APPROVE_OPTION) {
-        File selectedFile = fileChooser.getSelectedFile();
-         // Code to send the image to the server or other users
         try {
-            statusLabel.setText("Sending image..."); // update status
-              //TODO Change with information from network info
-           // controller.sendImage(selectedFile); 
-           statusLabel.setText("Image sent"); // Update status on successful send
-
-
-           new Timer(3000, e -> statusLabel.setText("Ready")).start();
-        } catch (Exception e) {
-            statusLabel.setText("Failed to send image"); // Update status on failure to send
-            JOptionPane.showMessageDialog(this, "Failed to send image: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            document.insertString(document.getLength(), "\n", null);
+            Style style = document.addStyle("ImageStyle", null);
+            StyleConstants.setIcon(style, icon);
+            document.insertString(document.getLength(), " ", style); // Insert the image
+            document.insertString(document.getLength(), "\n", null); // Move to the next line after the image
+        } catch (BadLocationException e) {
+            e.printStackTrace();
         }
-       
-      
     }
-    }
-    private static void showConnectionDialog() {
+
+    private void showConnectionDialog() {
         JTextField serverField = new JTextField(10);
-        JTextField portField = new JTextField(5);
         JTextField usernameField = new JTextField(10);
-        
-        //GRID
+
         JPanel panel = new JPanel(new GridLayout(0, 1));
         panel.add(new JLabel("Server IP:"));
         panel.add(serverField);
-        panel.add(new JLabel("Port:"));
-        panel.add(portField);
         panel.add(new JLabel("Username:"));
         panel.add(usernameField);
 
-        //confirm or cancel
         int result = JOptionPane.showConfirmDialog(null, panel, "Connect to Chat",
-        JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-    if (result == JOptionPane.OK_OPTION) {
-        try {
-           //TODO Change with information from network info
-           // controller.connectToServer(serverField.getText(), Integer.parseInt(portField.getText()), usernameField.getText()); 
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Failed to connect: " + e.getMessage(), "Connection Error", JOptionPane.ERROR_MESSAGE);
-            return; // stop the opening of the main window if connection fails
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (result == JOptionPane.OK_OPTION) {
+            controller.connectToServer(serverField.getText(), usernameField.getText().trim());
+        } else {
+            System.exit(0);  // Close application if user cancels
         }
-    } else {
-        System.exit(0); // close application if user cancels
-    }
     }
 
-    public static void main(String[] args) {
+    @Override
+    public void update(Observable o, Object arg) {
         SwingUtilities.invokeLater(() -> {
-        showConnectionDialog(); // Show connection dialog first
-        UserInterface uInt = new UserInterface();
-        uInt.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        uInt.pack();
-        uInt.setVisible(true);
-    });
+            try {
+                if (arg instanceof Message) {
+                    Message message = (Message) arg;
+
+                    // Update to check who sent the message
+                    if (message instanceof TextMessage) {
+                        document.insertString(document.getLength(), message.toString() + "\n", null);
+                    } else if (message instanceof MMS) {
+                        byte[] imageData = ((MMS) message).getImageData();
+                        insertImageToChat(imageData);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
+
 }

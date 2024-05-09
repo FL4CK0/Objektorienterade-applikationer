@@ -1,46 +1,84 @@
 package org.example;
 import java.io.*;
 import java.net.*;
-import java.util.Scanner;
+import java.io.*;
+import java.net.Socket;
+
+import java.io.*;
+import java.net.Socket;
+import java.util.Base64;
+import java.io.*;
+import java.net.Socket;
+import java.io.*;
+import java.net.*;
+import java.util.Base64;
 
 public class UserNetwork {
-    private static final String SERVER_ADDRESS = "localhost";
-    private static final int SERVER_PORT = 12345;
+    private String serverAddress;
+    private int serverPort;
+    private Socket socket;
+    private ObjectOutputStream out;
+    private ObjectInputStream in;
+    private ChatHistory chatHistory;
+    private User user;
+
+    public UserNetwork(String serverAddress, int serverPort, ChatHistory chatHistory, User user) {
+        this.serverAddress = serverAddress;
+        this.serverPort = serverPort;
+        this.chatHistory = chatHistory;
+        this.user = user;
+    }
 
     public void connectToServer() {
         try {
-            Socket socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
-            System.out.println("Connected to the chat server!");
+            socket = new Socket(serverAddress, serverPort);
+            out = new ObjectOutputStream(socket.getOutputStream());
+            out.flush(); // Flush the stream to ensure the header is written
+            in = new ObjectInputStream(socket.getInputStream());
 
-            // Setting up input and output streams
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            // Send initial data such as the username after the streams are established
+            out.writeObject(user.getUsername());
+            out.flush();
 
-            // Start a thread to handle incoming messages
-            new Thread(() -> {
-                try {
-                    String serverResponse;
-                    while ((serverResponse = in.readLine()) != null) {
-                        System.out.println("Received: " + serverResponse);
-                    }
-                } catch (IOException e) {
-                    System.out.println("Error reading from server: " + e.getMessage());
-                    e.printStackTrace();
-                }
-            }).start();
-
-            // Read messages from the console and send to the server
-            Scanner scanner = new Scanner(System.in);
-            String userInput;
-            while (true) {
-                userInput = scanner.nextLine();
-                System.out.println("Sending: " + userInput);
-                out.println(userInput);
-            }
-
+            // Now listen for messages from the server
+            new Thread(this::listenForMessages).start();
         } catch (IOException e) {
-            System.out.println("Unable to connect to server: " + e.getMessage());
+            System.err.println("Failed to connect to server: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private void listenForMessages() {
+        try {
+            Object message;
+            while ((message = in.readObject()) != null) {
+                if (message instanceof Message) {
+                    chatHistory.addMessage((Message) message);
+                } else if (message instanceof MMS) {
+                    chatHistory.addMessage((MMS) message);
+                }
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("Connection lost");
+            e.printStackTrace();
+        }
+    }
+
+    public void sendMessage(Message message) {
+        try {
+            if (message instanceof MMS) {
+                out.writeObject(message); // Send the entire MMS object, not just the content
+            } else {
+                out.writeObject(user.getUsername() + ": " + message.getContent());
+            }
+            out.flush();
+        } catch (IOException e) {
+            System.err.println("Failed to send message: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public String getUsername() {
+        return user.getUsername();
     }
 }
