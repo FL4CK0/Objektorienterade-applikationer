@@ -113,6 +113,7 @@ public class HostNetwork {
                         System.out.println(messageContent); // Log for debugging
                         HostNetwork.broadcast(new TextMessage(user.getUsername() + ": " + messageContent), this); // Broadcast to other clients
                     } else if (clientMessage instanceof MMS) {
+                        HostNetwork.broadcast(new TextMessage(user.getUsername() + ": "), this); //broadcasting who sent image
                         HostNetwork.broadcast((MMS) clientMessage, this); // Broadcast image message
                     }
                 }
