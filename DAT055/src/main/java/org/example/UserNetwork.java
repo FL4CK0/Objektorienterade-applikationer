@@ -69,7 +69,7 @@ public class UserNetwork {
             if (message instanceof MMS) {
                 out.writeObject(message); // Send the entire MMS object, not just the content
             } else {
-                out.writeObject(user.getUsername() + ": " + message.getContent());
+                out.writeObject(message.getContent());
             }
             out.flush();
         } catch (IOException e) {
@@ -78,7 +78,4 @@ public class UserNetwork {
         }
     }
 
-    public String getUsername() {
-        return user.getUsername();
-    }
 }

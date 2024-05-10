@@ -120,14 +120,20 @@ public class UserInterface extends JFrame implements Observer {
             if (result == JFileChooser.APPROVE_OPTION) {
                 File selectedFile = fileChooser.getSelectedFile();
                 try {
+
                     // Now, we convert the image to a byte array before sending
                     byte[] imageData = Files.readAllBytes(selectedFile.toPath());
-                    controller.sendImage(selectedFile); // This should also be modified if necessary to handle byte[].
-                    insertImageToChat(imageData);
+                    controller.sendImage(selectedFile);  // This handles sending the image and adding it to history
+
+                    // Insert "You:" and the image into the chat pane directly
+                    document.insertString(document.getLength(), "You:\n", null);
+                    insertImageToChat(imageData);  // Display the image after "You:"
                     statusLabel.setText("Image sent");
                     new javax.swing.Timer(3000, event -> statusLabel.setText("Ready")).start();
                 } catch (IOException ioException) {
                     JOptionPane.showMessageDialog(this, "Failed to load image: " + ioException.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                } catch (BadLocationException ex) {
+                    JOptionPane.showMessageDialog(this, "Failed to update chat pane: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
