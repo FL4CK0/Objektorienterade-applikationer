@@ -6,13 +6,9 @@ import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import org.example.MMS;
-import javax.swing.*;
 import javax.swing.text.*;
-import java.awt.*;
-import java.awt.event.*;
 import java.io.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
+
 
 public class UserInterface extends JFrame implements Observer {
     private JTextPane chatPane;

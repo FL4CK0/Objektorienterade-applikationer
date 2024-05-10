@@ -1,13 +1,9 @@
 package org.example;
 
 import java.util.Observable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import java.util.Observable;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ChatHistory extends Observable {
     private List<Message> messages = new CopyOnWriteArrayList<>();

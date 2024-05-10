@@ -1,7 +1,5 @@
 package org.example;
 import java.io.File;
-import org.example.MMS;
-import java.io.File;
 import java.nio.file.Files;
 
 public class Controller {
@@ -33,8 +31,6 @@ public class Controller {
             byte[] imageData = Files.readAllBytes(imageFile.toPath());
             MMS imageMessage = new MMS(imageData);
             client.sendMessage(imageMessage);
-            // Do not add here if the server is echoing messages back
-            // chatHistory.addMessage(imageMessage);
         } catch (Exception e) {
             System.err.println("Failed to send image: " + e.getMessage());
         }

@@ -1,7 +1,6 @@
 package org.example;
 
 import java.io.Serializable;
-import java.io.Serializable;
 
 public class TextMessage implements Message, Serializable {
     private static final long serialVersionUID = 1L; // Ensure version compatibility
