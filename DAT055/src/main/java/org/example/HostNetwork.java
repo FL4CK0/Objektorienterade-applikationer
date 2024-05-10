@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public class HostNetwork {
     private static final int PORT = 12345;
-    private static final String HOST_IP = "46.239.111.134"; // Example IP address
+    private static final String HOST_IP = "192.158.1.38"; // Example IP address
     private static final String HISTORY_FILE = "chat_history.dat";
     private static CopyOnWriteArrayList<ClientHandler> clients = new CopyOnWriteArrayList<>();
     private static List<Message> messageHistory = new ArrayList<>(); // Store messages for history
