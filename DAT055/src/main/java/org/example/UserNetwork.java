@@ -2,6 +2,12 @@ package org.example;
 import java.io.*;
 import java.net.Socket;
 
+
+/**
+ * Hanterar nätverkskommunikationen mellan klienten och servern.
+ * Denna klass ansvarar för att upprätta och underhålla en nätverksanslutning,
+ * skicka och ta emot meddelanden samt hantera strömmar för dataöverföring.
+ */
 public class UserNetwork {
     private String serverAddress;
     private int serverPort;
@@ -11,6 +17,15 @@ public class UserNetwork {
     private ChatHistory chatHistory;
     private User user;
 
+    /**
+     * Konstruerar en ny UserNetwork-instans.
+     * Initierar en nätverksanslutning med specifik serveradress och port, och länkar till en chatt-historik och användare.
+     *
+     * @param serverAddress IP-adressen till servern som klienten ska ansluta till.
+     * @param serverPort Porten på servern som klienten ska ansluta till.
+     * @param chatHistory En instans av ChatHistory för att lagra och hantera chattmeddelanden.
+     * @param user En instans av User som representerar användaren i nätverkskommunikationen.
+     */
     public UserNetwork(String serverAddress, int serverPort, ChatHistory chatHistory, User user) {
         this.serverAddress = serverAddress;
         this.serverPort = serverPort;
@@ -18,6 +33,10 @@ public class UserNetwork {
         this.user = user;
     }
 
+    /**
+     * Ansluter till servern och initierar lyssnare för meddelanden från servern.
+     * Skapar in- och ut-strömmar för att hantera överföring av data.
+     */
     public void connectToServer() {
         try {
             socket = new Socket(serverAddress, serverPort);
@@ -52,7 +71,11 @@ public class UserNetwork {
             e.printStackTrace();
         }
     }
-
+    /**
+     * Skickar ett meddelande till servern.
+     *
+     * @param message Meddelandet som ska skickas. Kan vara av typen TextMessage eller MMS.
+     */
     public void sendMessage(Message message) {
         try {
             if (message instanceof MMS) {

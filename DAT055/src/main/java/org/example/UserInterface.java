@@ -9,18 +9,30 @@ import java.io.File;
 import javax.swing.text.*;
 import java.io.*;
 
-
+/**
+ * Grafiskt användargränssnitt för chattapplikationen.
+ * Denna klass ärver från JFrame och implementerar Observer för att hantera uppdateringar från ChatHistory.
+ * Det hanterar all användarinteraktion genom olika grafiska komponenter som textfält, knappar och dialogrutor.
+ */
 public class UserInterface extends JFrame implements Observer {
     private JTextPane chatPane;
     private JTextField messageInputField;
     private JButton sendButton, imageButton;
     private JLabel statusLabel;
     private JList<String> userList;
-    private Controller controller;
+    private IController controller;
     private ChatHistory chatHistory;
     private StyledDocument document;
 
-    public UserInterface(Controller controller, ChatHistory chatHistory) {
+
+    /**
+     * Konstruerar användargränssnittet och initierar alla nödvändiga komponenter och lyssnare.
+     * Registrerar även klassen som en observatör till ChatHistory för att få meddelandeuppdateringar.
+     *
+     * @param controller En controller som hanterar alla användaråtgärder som att skicka meddelanden och bilder.
+     * @param chatHistory En ChatHistory som denna gränssnitt lyssnar på för att få meddelandeuppdateringar.
+     */
+    public UserInterface(IController controller, ChatHistory chatHistory) {
         super("Chat Application");
         this.controller = controller;
         this.chatHistory = chatHistory;
@@ -171,6 +183,13 @@ public class UserInterface extends JFrame implements Observer {
         }
     }
 
+
+    /**
+     * Uppdaterar användargränssnittet baserat på notifikationer från observabla objekt (ChatHistory).
+     *
+     * @param o Det observabla objektet (ChatHistory).
+     * @param arg Det meddelande som har skickats eller tagits emot.
+     */
     @Override
     public void update(Observable o, Object arg) {
         SwingUtilities.invokeLater(() -> {

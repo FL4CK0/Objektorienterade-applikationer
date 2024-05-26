@@ -5,13 +5,26 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.ArrayList;
 
+/**
+ * Klass serverfunktionaliteten i chattapplikationen
+ * Klassen hanterar klientanslutningar, meddelandeutsändning och lagring av meddelandehistorik.
+ * Den lyssnar på en specifik port för inkommande klientanslutningar och hanterar dem via interna ClientHandler-instanser.
+ */
 
 public class HostNetwork {
     private static final int PORT = 12345;
-    private static final String HOST_IP = "192.158.1.38"; // Example IP address
+    private static final String HOST_IP = "localhost"; // Example IP address
     private static final String HISTORY_FILE = "chat_history.dat";
     private static CopyOnWriteArrayList<ClientHandler> clients = new CopyOnWriteArrayList<>();
     private static List<Message> messageHistory = new ArrayList<>(); // Store messages for history
+
+
+    /**
+     * Startpunkt för serverapplikationen. Initierar laddning av chatthistorik och startar servern för att lyssna på anslutningar.
+     * När en klient ansluter, hanteras den av en ny tråd som instansierar ClientHandler.
+     *
+     * @param args Används inte i denna applikation.
+     */
 
     public static void main(String[] args) {
         loadHistory(); // Load history at startup
@@ -51,6 +64,13 @@ public class HostNetwork {
         }
     }
 
+    /**
+     * Sänder ett meddelande till alla anslutna klienter, undantaget avsändaren.
+     * Metoden lägger också till meddelandet i den lokala historiken och sparar den omedelbart.
+     *
+     * @param message Meddelandet som ska sändas.
+     * @param sender Klienthanteraren för avsändaren av meddelandet; kan vara null om meddelandet ska sändas till alla inklusive avsändaren.
+     */
     public static void broadcast(Message message, ClientHandler sender) {
         messageHistory.add(message); // Add to history when broadcasting
         saveHistory(); // Save after updating history
@@ -61,6 +81,12 @@ public class HostNetwork {
         }
     }
 
+    /**
+     * Returnerar en kopia av den nuvarande meddelandehistoriken.
+     * Används för att ge nya klienter historiken när de ansluter sig till servern.
+     *
+     * @return En ny lista som innehåller alla sparade meddelanden.
+     */
     // Method to get the message history
     public static List<Message> getHistory() {
         return new ArrayList<>(messageHistory);
@@ -95,6 +121,13 @@ public class HostNetwork {
             }
         }
 
+        /**
+         * Körmetod för klienthanteraren som används när en klientanslutning initieras.
+         * lyssnar kontinuerligt på inkommande meddelanden från den anslutna klienten
+         * och bearbetar dessa meddelanden genom att antingen logga dem eller sända dem vidare till andra klienter.
+         * Om meddelandet är av typen String sänds det som en TextMessage, och om det är en MMS hanteras det separat.
+         * Vid undantag eller avslut av anslutningen hanteras resursstädning och klienten tas bort från den aktiva klientlistan.
+         */
         @Override
         public void run() {
             try {
